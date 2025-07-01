@@ -1,0 +1,51 @@
+const mongoose = require('mongoose');
+
+const uri = process.env.MONGODB_URI;
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectToDB() {
+  if (cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }).then((conn) => conn);
+  }
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+const ContactSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  message: String,
+  submittedAt: { type: Date, default: Date.now },
+});
+
+const Contact = mongoose.models.Contact || mongoose.model('Contact', ContactSchema);
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  const { name, email, message } = req.body;
+
+  try {
+    await connectToDB();
+    const newContact = await Contact.create({ name, email, message });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Contact saved successfully',
+      data: newContact,
+    });
+  } catch (err) {
+    console.error('DB Error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to save contact' });
+  }
+};
