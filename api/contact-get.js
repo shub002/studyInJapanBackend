@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Only GET method is allowed' });
   }
-
+// space added
   try {
     await connectToDB();
 
