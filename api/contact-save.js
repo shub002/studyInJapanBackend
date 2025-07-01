@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// MongoDB URI from Vercel env variables
 const uri = process.env.MONGODB_URI;
 let cached = global.mongoose;
 
@@ -7,6 +8,7 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+// Connect to MongoDB (cached connection for serverless)
 async function connectToDB() {
   if (cached.conn) return cached.conn;
   if (!cached.promise) {
@@ -19,7 +21,7 @@ async function connectToDB() {
   return cached.conn;
 }
 
-// Updated schema with new fields
+// Schema with all requested fields
 const ContactSchema = new mongoose.Schema({
   name: String,
   dobYear: String,
@@ -38,9 +40,20 @@ const ContactSchema = new mongoose.Schema({
 
 const Contact = mongoose.models.Contact || mongoose.model('Contact', ContactSchema);
 
+// API Handler
 module.exports = async (req, res) => {
+  // ✅ Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*'); // change '*' to your frontend URL in production
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
+    return res.status(405).json({ error: 'Only POST method is allowed' });
   }
 
   const {
@@ -55,7 +68,7 @@ module.exports = async (req, res) => {
     address,
     jlpt,
     interestedCourse,
-    questions
+    questions,
   } = req.body;
 
   try {
@@ -73,7 +86,7 @@ module.exports = async (req, res) => {
       address,
       jlpt,
       interestedCourse,
-      questions
+      questions,
     });
 
     return res.status(200).json({

@@ -1,6 +1,10 @@
 const nodemailer = require('nodemailer');
 
 module.exports = async (req, res) => {
+   // ✅ Add CORS headers
+   res.setHeader('Access-Control-Allow-Origin', '*'); // change '*' to your frontend URL in production
+   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
