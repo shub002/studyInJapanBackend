@@ -19,10 +19,20 @@ async function connectToDB() {
   return cached.conn;
 }
 
+// Updated schema with new fields
 const ContactSchema = new mongoose.Schema({
   name: String,
+  dobYear: String,
+  dobMonth: String,
+  dobDay: String,
+  occupation: String,
   email: String,
-  message: String,
+  cmail: String,
+  tel: String,
+  address: String,
+  jlpt: String,
+  interestedCourse: String,
+  questions: String,
   submittedAt: { type: Date, default: Date.now },
 });
 
@@ -33,11 +43,38 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  const { name, email, message } = req.body;
+  const {
+    name,
+    dobYear,
+    dobMonth,
+    dobDay,
+    occupation,
+    email,
+    cmail,
+    tel,
+    address,
+    jlpt,
+    interestedCourse,
+    questions
+  } = req.body;
 
   try {
     await connectToDB();
-    const newContact = await Contact.create({ name, email, message });
+
+    const newContact = await Contact.create({
+      name,
+      dobYear,
+      dobMonth,
+      dobDay,
+      occupation,
+      email,
+      cmail,
+      tel,
+      address,
+      jlpt,
+      interestedCourse,
+      questions
+    });
 
     return res.status(200).json({
       success: true,
@@ -45,7 +82,7 @@ module.exports = async (req, res) => {
       data: newContact,
     });
   } catch (err) {
-    console.error('DB Error:', err);
+    console.error('MongoDB Save Error:', err);
     return res.status(500).json({ success: false, error: 'Failed to save contact' });
   }
 };
